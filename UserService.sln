@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserService.Api", "UserServ
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserService.Contract", "UserService.Contract\UserService.Contract.csproj", "{34D7EFE7-5541-46A6-BFE6-F681D916DB7C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UserService.Console", "UserService.Console\UserService.Console.csproj", "{589E0C4D-C96E-421F-A9D9-7222420E55CC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,18 @@ Global
 		{34D7EFE7-5541-46A6-BFE6-F681D916DB7C}.Release|x64.Build.0 = Release|Any CPU
 		{34D7EFE7-5541-46A6-BFE6-F681D916DB7C}.Release|x86.ActiveCfg = Release|Any CPU
 		{34D7EFE7-5541-46A6-BFE6-F681D916DB7C}.Release|x86.Build.0 = Release|Any CPU
+		{589E0C4D-C96E-421F-A9D9-7222420E55CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{589E0C4D-C96E-421F-A9D9-7222420E55CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{589E0C4D-C96E-421F-A9D9-7222420E55CC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{589E0C4D-C96E-421F-A9D9-7222420E55CC}.Debug|x64.Build.0 = Debug|Any CPU
+		{589E0C4D-C96E-421F-A9D9-7222420E55CC}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{589E0C4D-C96E-421F-A9D9-7222420E55CC}.Debug|x86.Build.0 = Debug|Any CPU
+		{589E0C4D-C96E-421F-A9D9-7222420E55CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{589E0C4D-C96E-421F-A9D9-7222420E55CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{589E0C4D-C96E-421F-A9D9-7222420E55CC}.Release|x64.ActiveCfg = Release|Any CPU
+		{589E0C4D-C96E-421F-A9D9-7222420E55CC}.Release|x64.Build.0 = Release|Any CPU
+		{589E0C4D-C96E-421F-A9D9-7222420E55CC}.Release|x86.ActiveCfg = Release|Any CPU
+		{589E0C4D-C96E-421F-A9D9-7222420E55CC}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
