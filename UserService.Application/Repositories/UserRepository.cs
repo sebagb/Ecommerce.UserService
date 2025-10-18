@@ -26,8 +26,7 @@ public class UserRepository(RepositoryDbContext context) : IUserRepository
 
     public bool Update(User user)
     {
-        var old = context.User.Single(x => x.Id == user.Id);
-        old = user;
+        context.User.Update(user);
         return context.SaveChanges() > 0;
     }
 }
