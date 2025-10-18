@@ -1,5 +1,8 @@
 using System.Text.Json;
+using UserService.Api.Auth;
+using UserService.Application.Repositories;
 using UserService.Contract.Requests;
+using UserService.Contract.Responses;
 
 namespace UserService.Api;
 
@@ -20,7 +23,7 @@ public static class ApiEndpoints
     }
 
     private static async Task<IResult> CreateUser(
-        HttpContext context)
+        HttpContext context, IUserRepository repo)
     {
         CreateUserRequest? createUserRequest;
         try
@@ -35,49 +38,74 @@ public static class ApiEndpoints
 
         var user = createUserRequest!.MapToUser();
 
-        //var isCreated = repo.Create(user);
+        repo.Create(user);
 
         var userResponse = user.MapToResponse();
         return Results.Ok(userResponse);
     }
 
-    private static IResult GetUserByCredentials(HttpRequest request)
+    private static IResult GetUserByCredentials(
+        HttpRequest request,
+        IUserRepository repo)
     {
         var credentials = request.Query.MapToGetUserByCredentialsRequest();
         var username = credentials.Username;
         var password = credentials.Password;
 
-        //var user = repo.GetUserByCredentials(username, password)
-        //var response = user.MapToResponse();
-        var response = "user.MapToResponse()";
+        var user = repo.GetByCredentials(username, password);
+
+        if (user == null)
+        {
+            return Results.NotFound();
+        }
+
+        var jwt = UserToken.CreateUserToken(user);
+
+        var response = new JwtResponse { Access_token = jwt };
+
         return Results.Ok(response);
     }
 
-    private static IResult GetUserById(int id)
+    private static IResult GetUserById(Guid id, IUserRepository repo)
     {
-        // var user = repo.GetUserById(id);
-        // var response = user.MapToResponse();
-
-        return Results.Ok($"Get by Id: {id}");
+        var user = repo.GetById(id);
+        var response = user.MapToResponse();
+        return Results.Ok(response);
     }
 
-    private static async Task<IResult> UpdateUser(HttpRequest request)
+    private static async Task<IResult> UpdateUser(
+        HttpContext context,
+        IUserRepository repo)
     {
+        var userIdClaim = context.User.FindFirst(AuthConstants.UserIdClaimName);
+        if (userIdClaim == null)
+        {
+            return Results.BadRequest("Invalid JWT");
+        }
+
         UpdateUserRequest? updateUserRequest;
         try
         {
             updateUserRequest =
-                await request.ReadFromJsonAsync<UpdateUserRequest>();
+                await context.Request.ReadFromJsonAsync<UpdateUserRequest>();
         }
-        catch (JsonException)
+        catch (Exception ex)
         {
-            return Results.BadRequest("Failed to deserialize request body");
+            if (ex is JsonException || ex is InvalidOperationException)
+            {
+                return Results.BadRequest(ex.Message);
+            }
+            throw;
         }
 
-        var id = Guid.NewGuid(); // take from jwt
-        var user = updateUserRequest.MapToUser(id);
+        var userId = new Guid(userIdClaim.Value);
+        var user = updateUserRequest.MapToUser(userId);
 
-        // var isUpdated = repo.Update(user)
+        var isUpdated = repo.Update(user);
+        if (!isUpdated)
+        {
+            return Results.InternalServerError("User is not updated");
+        }
 
         var response = user.MapToResponse();
         return Results.Ok(response);
