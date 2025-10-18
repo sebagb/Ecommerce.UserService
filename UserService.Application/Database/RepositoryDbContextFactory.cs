@@ -9,8 +9,11 @@ internal class RepositoryDbContextFactory
 {
     public RepositoryDbContext CreateDbContext(string[] args)
     {
+        var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+        var appSettings = $"appsettings.{env}.json";
         var config = new ConfigurationBuilder()
-            .AddJsonFile("appsettings.json")
+            .AddJsonFile(appSettings)
             .Build();
 
         var connection = config.GetSection("Database:ConnectionString").Value;
