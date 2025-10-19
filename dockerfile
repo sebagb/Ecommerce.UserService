@@ -18,7 +18,7 @@ RUN dotnet publish -c Release -o /app/publish
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
+ENV ASPNETCORE_ENVIRONMENT=Docker
 ENV ASPNETCORE_URLS=http://+:5030
 EXPOSE 5030
-ENV IS_DOCKER_CONTAINER=true
 ENTRYPOINT ["dotnet", "UserService.Api.dll"]
