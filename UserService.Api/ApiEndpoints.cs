@@ -69,6 +69,10 @@ public static class ApiEndpoints
     private static IResult GetUserById(Guid id, IUserRepository repo)
     {
         var user = repo.GetById(id);
+        if (user == null)
+        {
+            return Results.NoContent();
+        }
         var response = user.MapToResponse();
         return Results.Ok(response);
     }
