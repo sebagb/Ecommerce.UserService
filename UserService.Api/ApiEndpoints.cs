@@ -31,9 +31,13 @@ public static class ApiEndpoints
             createUserRequest =
                 await context.Request.ReadFromJsonAsync<CreateUserRequest>();
         }
-        catch (JsonException)
+        catch (Exception ex)
         {
-            return Results.BadRequest("Failed to deserialize request body");
+            if (ex is JsonException || ex is InvalidOperationException)
+            {
+                return Results.BadRequest(ex.Message);
+            }
+            throw;
         }
 
         var user = createUserRequest!.MapToUser();
