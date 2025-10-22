@@ -36,7 +36,11 @@ public static class ApiEndpoints
 
         var user = request.MapToUser();
 
-        repo.Create(user);
+        var created = repo.Create(user);
+        if (!created)
+        {
+            return Results.InternalServerError();
+        }
 
         var userResponse = user.MapToResponse();
         return Results.Ok(userResponse);

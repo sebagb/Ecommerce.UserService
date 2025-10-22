@@ -9,6 +9,11 @@ public class UserRepository(RepositoryDbContext context) : IUserRepository
 
     public bool Create(User user)
     {
+        var exists = context.User.Any(x => x.Username.Equals(user.Username));
+        if (exists)
+        {
+            return false;
+        }
         context.User.Add(user);
         return context.SaveChanges() > 0;
     }
@@ -26,7 +31,23 @@ public class UserRepository(RepositoryDbContext context) : IUserRepository
 
     public bool Update(User user)
     {
+        var existingUser = context.User.Any(x => x.Id == user.Id);
+
+        if (!existingUser)
+        {
+            return false;
+        }
+
+        var isDuplicated = context.User.Any(x =>
+            !x.Id.Equals(user.Id)
+            && x.Username.Equals(user.Username));
+
+        if (isDuplicated)
+        {
+            return false;
+        }
         context.User.Update(user);
+
         return context.SaveChanges() > 0;
     }
 }
