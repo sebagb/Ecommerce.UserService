@@ -18,7 +18,7 @@ public static class ApiEndpoints
 
     public static void RegisterUserEndpoints(this IEndpointRouteBuilder builder)
     {
-        builder.MapPost(Create, (Delegate)CreateUser)
+        builder.MapPost(Create, CreateUser)
             .AddEndpointFilter(BodyValidationFilter<CreateUserRequest>);
 
         builder.MapGet(GetByCredentials, GetUserByCredentials);
