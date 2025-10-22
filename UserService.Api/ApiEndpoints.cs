@@ -14,33 +14,27 @@ public static class ApiEndpoints
     private static string GetById { get; } = $"{Base}/{{id}}";
     private static string Update { get; } = $"{Base}";
 
+    private static readonly string jsonBodyKey = "jsonBody";
+
     public static void RegisterUserEndpoints(this IEndpointRouteBuilder builder)
     {
-        builder.MapPost(Create, (Delegate)CreateUser);
+        builder.MapPost(Create, (Delegate)CreateUser)
+            .AddEndpointFilter(BodyValidationFilter<CreateUserRequest>);
+
         builder.MapGet(GetByCredentials, GetUserByCredentials);
+
         builder.MapGet(GetById, GetUserById);
-        builder.MapPut(Update, UpdateUser);
+
+        builder.MapPut(Update, UpdateUser)
+            .AddEndpointFilter(UpdateUserFilter);
     }
 
     private static async Task<IResult> CreateUser(
         HttpContext context, IUserRepository repo)
     {
-        CreateUserRequest? createUserRequest;
-        try
-        {
-            createUserRequest =
-                await context.Request.ReadFromJsonAsync<CreateUserRequest>();
-        }
-        catch (Exception ex)
-        {
-            if (ex is JsonException || ex is InvalidOperationException)
-            {
-                return Results.BadRequest(ex.Message);
-            }
-            throw;
-        }
+        var request = (CreateUserRequest)context.Items[jsonBodyKey]!;
 
-        var user = createUserRequest!.MapToUser();
+        var user = request.MapToUser();
 
         repo.Create(user);
 
@@ -85,17 +79,34 @@ public static class ApiEndpoints
         HttpContext context,
         IUserRepository repo)
     {
-        var userIdClaim = context.User.FindFirst(AuthConstants.UserIdClaimName);
-        if (userIdClaim == null)
+        var userIdClaim = context.User
+            .FindFirst(AuthConstants.UserIdClaimName)!
+            .Value;
+
+        var updateUserRequest = (UpdateUserRequest)context.Items[jsonBodyKey]!;
+
+        var userId = new Guid(userIdClaim);
+        var user = updateUserRequest!.MapToUser(userId);
+
+        var isUpdated = repo.Update(user);
+        if (!isUpdated)
         {
-            return Results.BadRequest("Invalid JWT");
+            return Results.InternalServerError();
         }
 
-        UpdateUserRequest? updateUserRequest;
+        var response = user.MapToResponse();
+        return Results.Ok(response);
+    }
+
+    private static async ValueTask<object?> BodyValidationFilter<T>(
+        EndpointFilterInvocationContext context,
+        EndpointFilterDelegate next)
+    {
         try
         {
-            updateUserRequest =
-                await context.Request.ReadFromJsonAsync<UpdateUserRequest>();
+            var request = await context.HttpContext.Request.ReadFromJsonAsync<T>();
+
+            context.HttpContext.Items.Add(jsonBodyKey, request);
         }
         catch (Exception ex)
         {
@@ -106,16 +117,21 @@ public static class ApiEndpoints
             throw;
         }
 
-        var userId = new Guid(userIdClaim.Value);
-        var user = updateUserRequest.MapToUser(userId);
+        return await next(context);
+    }
 
-        var isUpdated = repo.Update(user);
-        if (!isUpdated)
+    private static async ValueTask<object?> UpdateUserFilter(
+        EndpointFilterInvocationContext context,
+        EndpointFilterDelegate next)
+    {
+        var userIdClaim = context.HttpContext.User
+            .FindFirst(AuthConstants.UserIdClaimName);
+
+        if (userIdClaim == null)
         {
-            return Results.InternalServerError("User is not updated");
+            return Results.BadRequest("Invalid JWT");
         }
 
-        var response = user.MapToResponse();
-        return Results.Ok(response);
+        return await BodyValidationFilter<UpdateUserRequest>(context, next);
     }
 }
