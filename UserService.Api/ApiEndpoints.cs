@@ -73,7 +73,7 @@ public static class ApiEndpoints
         var user = repo.GetById(id);
         if (user == null)
         {
-            return Results.NoContent();
+            return Results.NotFound();
         }
         var response = user.MapToResponse();
         return Results.Ok(response);
